@@ -38,14 +38,15 @@ proc = Procedure("pypublisher_demo.proc","pypublisher_demo_proc",
          Argument("y","out",r_array)])
 
 generate_all([proc],"pypublisher_demo","some directory",
-    "name of a wrapper package","some dir","sqlplus login"testdir,dblogin)
+    "name of a wrapper package","some dir","sqlplus login",testdir,dblogin)
 ```
 
 a Python Module is created which contains a definition for a class corresponding 
-to the PL/SQL record pypublisher_demo.r and and a class which contains the method 
-which wraps pypublisher_demo.proc. Assume is con is cx_Oracle connection object: import pypublisher_demo
+to the PL/SQL record `pypublisher_demo.r` and and a class which contains the method 
+which wraps `pypublisher_demo.proc`. Assume is con is a `cx_Oracle.connection` object: 
 
 ```
+import pypublisher_demo
 import decimal
 import datetime
 

@@ -24,21 +24,28 @@ end;
 
 and a configuration in Python 
 ```
-from pypublisher import (Record,Table,Procedure,Date,Number,Varchar2)
+from generation import (Record,Table,Procedure,Argument,Date,Number,Varchar2,generate_all)
 
-r = Record("pypublisher_demo.r","r_record",
+rx = Record("example1.r",
            [("a",Varchar2(2000)),
             ("b",Number()),
             ("c",Date())])
 
-type r_array = Table("pypublisher_demo.r_array",r)
+r_array = Table("example1.r_array",rx)
 
-proc = Procedure("pypublisher_demo.proc","pypublisher_demo_proc",
+print(r_array)
+
+proc = Procedure("example1.proc","example1_proc",
         [Argument("x","in",r_array),
          Argument("y","out",r_array)])
 
-generate_all([proc],"pypublisher_demo","some directory",
-    "name of a wrapper package","some dir","sqlplus login",testdir,dblogin)
+import os
+dblogin = os.environ['pypub_login'] # login for test schema
+
+
+generate_all([proc],"example1module",".",
+             "wrap_example1",".",dblogin)
+
 ```
 
 a Python Module is created which contains a definition for a class corresponding 
@@ -46,16 +53,27 @@ to the PL/SQL record `pypublisher_demo.r` and and a class which contains the met
 which wraps `pypublisher_demo.proc`. Assume is con is a `cx_Oracle.connection` object: 
 
 ```
-import pypublisher_demo
-import decimal
-import datetime
+import cx_Oracle
+import example1module
 
-p = pypublisher_demo.pypublisher_demo(con)
-a = pypublisher_demo.r_record()
-a.a ="some text"
-a.b = decimal.Decimal("123.45")
-c.d = datetime.datetime(2007,3,8,10,4,5)
+import os
+dblogin = os.environ['pypub_login'] # login for test schema
 
-res = p.([a])
-print(res)
+def test(n) :
+   con = cx_Oracle.connect(dblogin)
+   try :
+       p = example1module.procedures(con)
+       l=list()
+       for i in range(n) :
+           r = example1module.example1_r()
+           r.a = "Row "+str(i)
+           r.b = i
+           r.c = None
+           l.append(r)
+       res = p.example1_proc(l)
+       print(res)
+   finally :
+       con.close()
+
+test(10)
 ```

@@ -1,0 +1,4 @@
+glob:*.pyc
+glob:*.~pck
+glob:test/tmp/*
+glob:*.hide

@@ -1,0 +1,205 @@
+<html>
+
+<head>
+<title>PyPublisher</title>
+<style type="text/css">
+  body { color: black; background: white; 
+  margin-left: 30px;
+  margin-right: auto;
+  text-align: left;}
+ 
+  div#main {
+  width: 750px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;}
+ 
+tt.code {}
+
+pre.code { background-color:#eee; padding:10px}
+
+</style>
+</head>
+
+<body>
+<div id="main">
+<h1>PyPublisher</h1>
+<h2>Abstract</h2>
+<p>
+PyPublisher is a Python system to create wrappers for Oracle stored procedures with complex arguments.
+The atomic datatypes varchar2, date,raw and number ares upported as well as records and tables (normal and associative).
+PyPublisher depends on cx_Oracle. 
+</p>
+<h2>Example</h2>
+<p>A small example, given the PL/SQL Package</p>
+<pre class="code">
+create or replace package pypublisher_demo as
+   type r is record(a varchar2(2000),
+                    b number,
+                    c date);
+
+   type r_array is table of r;
+
+   procedure proc(x r_array, y out r_array) ;
+end;
+</pre>
+and a configuration in Python (the environment variable <tt>pypub_login</tt> contains the oracle login, i.e. user/pw@tnsname)
+<pre class="code">
+from generation import (Record,Table,Procedure,Argument,Date,Number,Varchar2,generate_all)
+
+rx = Record("example1.r",
+           [("a",Varchar2(2000)),
+            ("b",Number()),
+            ("c",Date())])
+
+r_array = Table("example1.r_array",rx)
+
+print(r_array)
+
+proc = Procedure("example1.proc","example1_proc",
+        [Argument("x","in",r_array),
+         Argument("y","out",r_array)])
+
+import os
+dblogin = os.environ['pypub_login'] # login for test schema
+
+
+generate_all([proc],"example1module",".",
+             "wrap_example1",".",dblogin)
+
+</pre>
+a Python Module is created which contains a definition for a class
+corresponding to the PL/SQL record <tt>example1.r</tt> and and a class
+which contains the method which wraps <tt>example1.proc</tt>.
+<pre class="code">
+import cx_Oracle
+import example1module
+import datetime
+
+import os
+dblogin = os.environ['pypub_login'] # login for test schema
+
+def test(n) :
+   con = cx_Oracle.connect(dblogin)
+   try :
+       p = example1module.procedures(con)
+       l=list()
+       for i in range(n) :
+           r = example1module.example1_r()
+           r.a = "Row "+str(i)
+           r.b = i      
+           r.c =  datetime.datetime(2000,1,1,0,0,0)+ datetime.timedelta(days=i)
+           l.append(r)
+       res = p.example1_proc(l)
+       print(res)
+   finally :
+       con.close()
+
+test(10)
+
+</pre>
+<h2>Declaration</h2>
+The definition of the objects to generate is a python object.
+So you have to write a Python file with the definitions of
+the types and procedures and then generate the two files (python module and PL/SQL package) 
+with a call to <tt>pypublisher.generate_all</tt>.
+All code is generated into one module/file.
+It should be possible to read the definitions from the Oracle data dictionary.
+But then there must be a way to say define datatype mapping. 
+
+The procedures for which wrappers are to be created are defined 
+as instances of the class Procedure.
+
+The module <tt>generation</tt> contains the following classes which represents
+PL/SQL types. This types govern the conversion between PL/SQL and Python.
+<ul>
+</li>
+<li><tt class="code">Varchar2</tt>
+The constructor argument is an integer, this denotes the length of the type in
+chars or bytes.
+There is a value <em>varchar2</em> = <tt>Varchar2()</tt> which is a string without 
+length constraints.
+</li>
+<li><tt class="code">Number</tt>
+No constructor argument. There is a value <em>number</em> of class Number.
+This type maps on the python side to decimal.
+In PL/SQL this is a number.
+</li>
+<li><tt class="code">Integer</tt>
+No constructor argument. There is a value <em>integer</em> of class Integer.
+This type maps on the python side to int.
+In PL/SQL this is an integer.
+</li>
+<li><tt class="code">Date</tt>
+No constructor argument. There is a value <em>date</em> of class Date.
+This type maps on the python side to datetime.datetime.
+</li>
+<li><tt class="code">Guid</tt>
+No constructor argument. There is a value <em>guid</em> of class Guid.
+In PL/SQL this is a RAW(16).
+</li>
+<li><tt class="code">Record</tt> Values of this type represent a record type from PL/SQL.
+Constructor arguments
+<ul>
+<li>
+a string which denotes the name of PL/SQL record type.
+</li>
+<li>
+a list of fields of the record, where each field is a tuple with of length two:
+the name of the field and the type of the field (value of class Number,Varchar2, ...).
+</li>
+<li>
+a string which denotes the class which is created as a pendant in python. This
+argument can be omitted. Its default is the complete (package inclusive) PL/SQL name in lower case
+where "." is replaced by "_".
+</li>
+</ul>
+This type represents a record in PL/SQL. A Python class will be generated
+with the same fields/slots.
+</li>
+<li><tt class="code">Object</tt>Values of this type represent an object type in Oracle.
+Constructor arguments
+<ul>
+<li>
+a string which denotes the name of PL/SQL record type.
+</li>
+<li>
+an integer, this is the number of arguments for the constructor in PL/SQL.
+</li>
+<li>
+a list of fields of the record, where each field is a tuple with of length two:
+the name of the field and the type of the field (value of class Number,Varchar2, ...).
+</li>
+<li>
+a string which denotes the class which is created as a pendant in python. This
+argument can be omitted. Its default is the complete PL/SQL name in lower case
+where "." is replaced by "_".
+</li>
+</ul>
+<li>
+<tt class="code">Table</tt> Values of this type represent a PL/SQL table type (not the associative ones).
+Constructor argument is the type of elements in the table.
+</li>
+<li><tt class="code">PLSQLTableI</tt> Values of this type represent a associative PL/SQL table, 
+where the index is binary_integer (I for Integer).
+Constructor argument is a value for the element type.
+</li>
+<li><tt class="code">PLSQLTableV</tt> Values of this type represent a associative PL/SQL table, 
+where the index is varchar2 type (V for varchar2).
+Constructor argument is a value for the element type.
+</li>
+</ul>
+A procedure that is to be wrapped is represented by a value of type <tt class="code">Procedure</tt>.
+The constructor arguments are
+<ul>
+<li>a string, the PL/SQL name of the procedure (inclusive package name).</li>
+<li>a string, the name of the python method that will be created for the proedure.</li>
+<li>a list of arguments for the procedure, the elements of the list must be
+tuples of length 3: <ul>
+<li>a string, the name of the argument, currently ignored. The lowercased value
+is the name of bthe corresponding argument in the python function.</li>
+<li>a string, the direction of the argument one of {in, out, inout} </li>
+<li>a type, a value that represents the type of the argument.</li>
+</ul>
+</div>
+</body>

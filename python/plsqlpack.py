@@ -32,7 +32,7 @@ def descape (s):
     return s.replace(esc+sep_repl,sep).replace(esc+esc_repl,esc)
 
 # used to throw thze excpetion which was riased in the original PL/SQL Code
-class PLSQLException :
+class PLSQLException (BaseException) :
     def __init__(self,value) :
         self.value=value
     def __repr__(self) :

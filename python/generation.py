@@ -147,6 +147,7 @@ def checkIsArg(x) :
         dir = direction.lower()
         if not (dir=="in" or dir=="out" or dir == "inout") :
             raise GenerationException("Wrong direction: " + dir)
+        return True
     else :
         raise GenerationException("argument has to be a tuple of length 3: " + str(x))
 
@@ -155,6 +156,7 @@ def upgradeArg(x) :
         return x
     if checkIsArg(x) :
         return Argument(x[0],x[1],x[2])
+    
     
 class Procedure :
     def __init__ (self,name,pyname,args) :
@@ -636,7 +638,6 @@ class Generation (object):
             raise GenerationException("method name used twice" + repr(proc))
         else :
              self.generated_methods[proc.pname]=True
-             
         for arg in args:
             self.gen_type(arg.plsqltype)
         #

@@ -305,6 +305,13 @@ procedure put(t $tab_type) is
   end;
 """
 
+# the values are in order:
+#  pl/sql routine to put
+#  pl/sql routine to get
+#  python routine to put
+#  python routine to get
+#   python routine name relativ to created module
+
 def base_type_dic () :
     d = dict()
     d["NUMBER"] = ("packing.putn","packing.getn","put_number","get_number")
@@ -771,7 +778,7 @@ def generate_all(procs,py_mod,py_mod_dir,packname,pack_dir,connstr) :
                 module
     packname: the name of the wrapper pl/sql package
     pack_dir: where to place the generated package
-    connstr: the sqlplus connection whoich will be used to install
+    connstr: the sqlplus connection which will be used to install
              the generated package, If None nothing will be done.
              the path for the sqlplus binary has to be in the 
              path environment variable

@@ -4,7 +4,7 @@ import unittest
 import sys
 
 from generation import ( Record,Table, Number, Varchar2,Generation,
-  Procedure,Argument, Date, Integer,Guid,PLSQLTableI,PLSQLTableV,gen_sqlplus,
+  Procedure,Argument, Date, Integer,Guid,timestamp,PLSQLTableI,PLSQLTableV,gen_sqlplus,
   generate_all,Object)
 
 import cx_Oracle
@@ -168,19 +168,24 @@ def get_procs () :
          ("y","out",obla)])
 
     p_testuni1 = Procedure("test_pypub1.testuni1","p_testuni1",
-        [("x","out",Varchar2(2000)),
-         ("y","out",Integer())])
-        
+                           [("x","out",Varchar2(2000)),
+                            ("y","out",Integer())])
 
+    p_timestamping = Procedure("test_pypub1.timestamping","p_timestamping",
+                               [("x","in",timestamp),
+                                ("y","out",timestamp)])
+    
+    
     return [p0,p1,p2,p2b,p2c,p3,p4,p5,p6,p7,p8,p9,p10,t1_ident,
-       start_profiler,
-       stop_profiler,
-       get_all_tab_columns,
-       tab_columns_ident,
-       p_tabi,
-       p_tabv,
-       p_o1,
-       p_testuni1]
+            start_profiler,
+            stop_profiler,
+            get_all_tab_columns,
+            tab_columns_ident,
+            p_tabi,
+            p_tabv,
+            p_o1,
+            p_testuni1,
+            p_timestamping]
 
 
 if __name__ == '__main__':

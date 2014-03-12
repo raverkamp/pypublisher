@@ -148,6 +148,8 @@ create or replace package test_pypub1 is
   procedure testo;
 
   procedure testuni1(x out varchar2,y out integer);
+  
+  procedure timestamping(x in timestamp,y out timestamp);
 
 end;
 /
@@ -385,6 +387,10 @@ create or replace package body test_pypub1 is
        dbms_output.put_line(length4(res));
     end;
 
+   procedure timestamping(x in timestamp,y out timestamp) is
+   begin
+     y:=x;
+   end;
 begin
   null;
   --plog.log_level := plog.level_debug;

@@ -138,6 +138,13 @@ This type maps on the python side to datetime.datetime.
 No constructor argument. There is a value <em>guid</em> of class Guid.
 In PL/SQL this is a RAW(16).
 </li>
+<li><tt class="code">Timestamp</tt>
+No constructor argument. There is a value <em>timestamp</em> of class Timestamp.
+In PL/SQL this is a timestamp. This type maps on the python side to datetime.datetime.
+Only millions of seconds are supported, this is timestamp(6) in PL/SQL. 
+In PL/SQL it is possible to have billions of seconds (timestamp(9)). 
+Note that in PL/SQL formal parameters of timestamp do not have a size.
+</li>
 <li><tt class="code">Record</tt> Values of this type represent a record type from PL/SQL.
 Constructor arguments
 <ul>

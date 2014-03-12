@@ -47,8 +47,11 @@ create or replace package packing is
   
   procedure putg(v in raw);
   procedure getg(v out raw);
+  
+  procedure putt(v in timestamp);
+  procedure gett(v out timestamp);
 
-  type string_array is table of  varchar2(2000 char);
+  type string_array is table of varchar2(2000 char);
   function get_data return string_array
     pipelined;
 
@@ -229,6 +232,19 @@ create or replace package body packing is
     get(x);
     v:=hextoraw(x);
   end;
+  
+  procedure putt(v in timestamp) is
+    begin
+      put(to_char(v,'yyyy-mm-dd hh24:mi:ss.ff6'));
+    end;
+    
+  procedure gett(v out timestamp) is
+    x varchar2(30);
+  begin
+    get(x);
+    v:=to_timestamp(x,'yyyy-mm-dd hh24:mi:ss.ff');
+  end;
+    
 
   procedure clear is
   begin

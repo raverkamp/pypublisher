@@ -31,7 +31,7 @@ def escape (s) :
 def descape (s):
     return s.replace(esc+sep_repl,sep).replace(esc+esc_repl,esc)
 
-# used to throw the excpetion which was riased in the original PL/SQL Code
+# used to throw the excpetion which was raised in the original PL/SQL Code
 class PLSQLException (BaseException) :
     def __init__(self,value) :
         self.value=value
@@ -138,6 +138,25 @@ class Packing (object) :
                 self.put(x.strftime("%Y-%m-%d %H:%M:%S"))
             else :
                raise PackException("datetime expected")
+
+    def get_timestamp(self) :
+        v = self.get()
+        if v == None or v=="" :
+            return None
+        else :
+           return datetime.datetime.strptime(v,"%Y-%m-%d %H:%M:%S.%f")
+
+    def put_timestamp(self,x) :
+        if x==None :
+            self.put("")
+        else :
+            if isinstance(x,datetime.datetime) :
+                self.put(x.strftime("%Y-%m-%d %H:%M:%S.%f"))
+            #elif isinstance(x,time.struct_time) :
+            #    self.put(time.strftime("%Y-%m-%d %H:%M:%S.%f",x))
+            else :
+                raise PackException("datetime expected")
+
 
     def get_guid(self) :
         v = self.get()

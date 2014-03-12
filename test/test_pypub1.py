@@ -10,6 +10,7 @@ import decimal
 import uuid
 import sys
 import os
+import time
 
 from plsqlpack import PLSQLException,PackException
 
@@ -18,9 +19,14 @@ dblogin = os.environ['pypub_login'] # login for test schema
 class  Gen_TestCase(unittest.TestCase):
   
     def setUp(self):
-        con = cx_Oracle.connect(dblogin)
-        self.pack = procedures(con)
+        print("Start " + repr(type(self)))
+        self.con = cx_Oracle.connect(dblogin)
+        self.pack = procedures(self.con)
 
+    def tearDown(self) :
+        self.con.close()
+
+class Tests1(Gen_TestCase) :
     def test_comp(self) :
         r1 = test_pypub1_aas()
         r1.a = 1
@@ -179,9 +185,36 @@ class  Gen_TestCase(unittest.TestCase):
     def test_p10(self ):
         with self.assertRaises(PLSQLException):
            a = self.pack.p10_xyz("bla")
-        
 
-    
+class Tests2(Gen_TestCase) :        
+    def test_timestamping(self) :
+        import orautil
+        # 123456 are microseconds
+        t = datetime.datetime(2012,3,4,23,34,12,123456)
+        #orautil.dbms_output_enable(self.con,100000)
+
+        t2 = self.pack.p_timestamping(t)
+        #print(orautil.dbms_output_get_lines(self.con))
+        self.assertTrue(t==t2)
+
+    def test_timestamping2(self) :
+        t3 = self.pack.p_timestamping(None)
+        self.assertTrue(t3 is None)
+
+
+# testing dbms_output
+class TestDbmsOutput(Gen_TestCase) :
+
+    def test1(self) :
+        import orautil
+        orautil.dbms_output_enable(self.con,10000)
+        cur = self.con.cursor()
+        for i in range(10) :
+            cur.callproc("dbms_output.put_line",["line " +repr(i)])
+        cur.close()
+        l = orautil.dbms_output_get_lines(self.con)
+        print(l)
+
 
 if __name__ == '__main__':
     unittest.main()

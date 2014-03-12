@@ -98,12 +98,20 @@ class Guid(PLSQLType) :
     def __repr__ (self) :
          return "guid()"
 
+class Timestamp(PLSQLType) :
+    def __init__ (self) :
+        self.name = "TIMESTAMP"
+    def __repr__ (self) :
+         return "timestamp()"
+    
+
 # the singletons
 varchar2 = Varchar2(None)
 number=Number()
 integer=Integer()
 date=Date()
 guid=Guid()
+timestamp=Timestamp()
 
 
 def var_type_name(ty) :
@@ -310,7 +318,7 @@ procedure put(t $tab_type) is
 #  pl/sql routine to get
 #  python routine to put
 #  python routine to get
-#   python routine name relativ to created module
+#   python routine name relative to created module
 
 def base_type_dic () :
     d = dict()
@@ -319,6 +327,7 @@ def base_type_dic () :
     d["DATE"] = ("packing.putd","packing.getd","put_date","get_date")
     d["INTEGER"] = ("packing.putn","packing.getn","put_integer","get_integer")
     d["GUID"] =("packing.putg","packing.getg","put_guid","get_guid")
+    d["TIMESTAMP"] = ("packing.putt","packing.gett","put_timestamp","get_timestamp")
     return d
 
 def default_putters () : return ("""
@@ -350,6 +359,11 @@ def default_putters () : return ("""
         self.packing.put_guid(d)
     def get_guid(self):
         return self.packing.get_guid()
+
+    def put_timestamp(self,d) :
+        self.packing.put_timestamp(d)
+    def get_timestamp(self) :
+        return self.packing.get_timestamp()
   """)
 
 def checktype(va,ty) :
@@ -366,7 +380,7 @@ def checktype(va,ty) :
 class Unifier (object) :
     def __init__ (self) :
         self.names = dict()
-    
+
     def simplify(self,name) :
         name = name.upper()
         name = name.replace(".","_")

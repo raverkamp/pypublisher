@@ -174,6 +174,11 @@ def get_procs () :
     p_timestamping = Procedure("test_pypub1.timestamping","p_timestamping",
                                [("x","in",timestamp),
                                 ("y","out",timestamp)])
+
+    p_large_string = Procedure("test_pypub1.large_string","p_large_string",
+                               [("x","in",Varchar2(32767)),
+                                ("y","out",Varchar2(32767))])
+
     
     
     return [p0,p1,p2,p2b,p2c,p3,p4,p5,p6,p7,p8,p9,p10,t1_ident,
@@ -185,7 +190,9 @@ def get_procs () :
             p_tabv,
             p_o1,
             p_testuni1,
-            p_timestamping]
+            p_timestamping,
+            p_large_string
+        ]
 
 
 if __name__ == '__main__':

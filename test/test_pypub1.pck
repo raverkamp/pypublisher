@@ -150,6 +150,8 @@ create or replace package test_pypub1 is
   procedure testuni1(x out varchar2,y out integer);
   
   procedure timestamping(x in timestamp,y out timestamp);
+  
+    procedure large_string(x in varchar2,y out varchar2) ;
 
 end;
 /
@@ -389,7 +391,15 @@ create or replace package body test_pypub1 is
 
    procedure timestamping(x in timestamp,y out timestamp) is
    begin
+     dbms_output.put_line('Received: '||to_char(x,'yyyy-mm-dd hh24:mi:ss.ff6'));
      y:=x;
+   end;
+   
+   procedure large_string(x in varchar2,y out varchar2) is
+     l integer;
+   begin
+     l:= trunc(length(x)/2);
+     y := substr(x,l+1)||substr(x,1,l);
    end;
 begin
   null;

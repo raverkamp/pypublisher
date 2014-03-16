@@ -201,19 +201,44 @@ class Tests2(Gen_TestCase) :
         t3 = self.pack.p_timestamping(None)
         self.assertTrue(t3 is None)
 
+    def swap(self,s) :
+        l = int(len(s)/2)
+        return (s[l:])+  (s[0:l])
+
+    def test_p_large_string(self) :
+        (a) = self.pack.p_large_string("1234")
+        self.assertTrue(a == self.swap("1234"))
+
+        # a string less than 10000 chars works
+        s = "1234567890"*999
+        (a) = self.pack.p_large_string(s)
+        self.assertTrue(a == self.swap(s))
+        
 
 # testing dbms_output
+# note : dbms_output supports lines with maximum length of 32767 
+#        and unlimited internal size
+#        testing reveals, that 1000000 is the maximum internal buffers size
+#        and retrieving lines of length greater than ?, or maybe this 
+#        is a problem when retrieving data
+#        writing that long lines is not a problem
+#        error in "SYS.DBMS_OUTPUT", line 151 
+#        the buffer in the call dbms_output.get_line has length 32767
 class TestDbmsOutput(Gen_TestCase) :
 
     def test1(self) :
         import orautil
-        orautil.dbms_output_enable(self.con,10000)
+        orautil.dbms_output_enable(self.con,1000000)
         cur = self.con.cursor()
-        for i in range(10) :
-            cur.callproc("dbms_output.put_line",["line " +repr(i)])
+        lin = []
+        for i in range(100) :
+            lin.append("line " +("x"* (i*10)) + repr(i))
+        for x in lin : 
+            cur.callproc("dbms_output.put_line",[x])
         cur.close()
-        l = orautil.dbms_output_get_lines(self.con)
-        print(l)
+        lout = orautil.dbms_output_get_lines(self.con)
+        self.assertTrue(lin==lout)
+
 
 
 if __name__ == '__main__':

@@ -178,17 +178,12 @@ create or replace package body test_pypub1 is
   procedure p1(x table_, z out table_) is
     v table_;
   begin
-    for i in x.first .. x.last loop
-      null;
-      --plog.info('x' || i, '' || x(i).a || '|' || x(i).b);
-    end loop;
     v := new Table_();
-    for i in 1 .. 5 loop
+    for i in x.first .. x.last loop
       v.extend();
-      v(v.last).a := i;
-      v(v.last).b := 'abcd-' || i;
-      v(v.last).c := to_date('13-9-2005', 'dd-mm-yyyy') + i;
-
+      v(v.last).a :=  -x(i).a;
+      v(v.last).b := 'abcd-' || x(i).b;
+      v(v.last).c := x(i).c +i;
     end loop;
     z := v;
   end;

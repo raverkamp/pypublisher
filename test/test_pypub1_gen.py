@@ -147,7 +147,7 @@ def get_procs () :
     procedure p_tabv(x in tabv_r1,y out tabv_r1);
     """
     tabi_r1 = PLSQLTableI("test_pypub1.tabi_r1",r1)
-    tabv_r1 = PLSQLTableI("test_pypub1.tabv_r1",r1)
+    tabv_r1 = PLSQLTableV("test_pypub1.tabv_r1",r1)
     
     p_tabi = Procedure("test_pypub1.p_tabi_r1","p_tabi",
          [("x","in",tabi_r1),

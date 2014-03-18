@@ -1,3 +1,4 @@
+
 import decimal
 import datetime
 import time
@@ -211,8 +212,9 @@ class Packing (object) :
              else :
                 items = tab.items()
              for (k,v) in items : # tab.iteritems() :
+                if k is None :
+                    raise PackException("key must not be null")
                 self.put_int(k)
-                #print ("+"+str(k)+"/"+str(v))
                 putter(self,v)
           else :
               raise PackException("expecting a dict not a " + type(tab))
@@ -223,7 +225,13 @@ class Packing (object) :
         else :
           if isinstance(tab,dict) :
              self.put_int(len(tab))
-             for (k,v) in tab.iteritems() :
+             if PY2 :
+                items = tab.iteritems()
+             else :
+                items = tab.items()
+             for (k,v) in items :
+                if k is None or k== "" :
+                    raise PackException("key must not be null or empty string")
                 self.put(k)
                 putter(self,v)
           else :

@@ -270,7 +270,6 @@ procedure put(t $tab_type) is
     if size_ is null then
       raise_application_error(-20001,'plsql table must not be null');
     end if;
-    packing.putn(t.count);
     for i in 1 .. size_ loop
         packing.getn(k);
         $item_get(r);
@@ -280,12 +279,13 @@ procedure put(t $tab_type) is
 """
     plsql_tablev_put_get = """
 procedure put(t $tab_type) is
-  i integer;
+  i varchar2(32767);
   begin
      if t.first is null then
         packing.putn(0);
         return;
      end if;
+     packing.putn(t.count);
      i:= t.first;
      loop
         exit when i is null;
@@ -298,13 +298,14 @@ procedure put(t $tab_type) is
 
   procedure get(t in out nocopy $tab_type) is
     size_ number;
-    k integer;
+    k varchar2(32767);
     r $elem_type;
   begin
     packing.getn(size_);
     if size_ is null then
       raise_application_error(-20001,'plsql table must not be null');
     end if;
+    packing.putn(t.count);
     for i in 1 .. size_ loop
         packing.getv(k);        
         $item_get(r);
@@ -611,6 +612,7 @@ class Generation (object):
 
        self.paccu.append("    def " + py_get_name +"(self):\n"
           + "        return self.packing.get_plsqltableV(lambda b : self." + pyget +"())\n\n")
+       self.intern(ttype, ("put","get",py_put_name,py_get_name))
 
     def gen_tablei(self,ttype) :
        ty = ttype.type

@@ -3,7 +3,7 @@
 
 import unittest
 import cx_Oracle
-from py_pack1 import test_pypub1_aas,test_pypub1_r1,test_pypub1_r2,procedures
+from py_pack1 import test_pypub1_aas,test_pypub1_r1,test_pypub1_r2,procedures,test_object
 
 import datetime
 import decimal
@@ -19,7 +19,7 @@ dblogin = os.environ['pypub_login'] # login for test schema
 class  Gen_TestCase(unittest.TestCase):
   
     def setUp(self):
-        print("Start " + repr(type(self)))
+        #print("Start " + repr(type(self)))
         self.con = cx_Oracle.connect(dblogin)
         self.pack = procedures(self.con)
 
@@ -45,14 +45,23 @@ class Tests1(Gen_TestCase) :
         r1 = test_pypub1_aas()
         r1.a = 1
         r1.b = "abc"
+        r1.c = datetime.datetime(2012,12,3)
 
         r2 = test_pypub1_aas()
         r2.a = 2
         r2.b = "xyz"
-
+        r2.c =  datetime.datetime(2019,11,12)
+ 
         res = self.pack.p1([r1,r2])
-        for a in res :
-            print (a)
+        [a,b] = res
+        self.assertTrue(a.a == -r1.a)
+        self.assertTrue(a.b == "abcd-" + r1.b)
+        self.assertTrue(a.c == r1.c+datetime.timedelta(1))
+
+        self.assertTrue(b.a == -r2.a)
+        self.assertTrue(b.b == "abcd-" + r2.b)
+        self.assertTrue(b.c == r2.c+datetime.timedelta(2))
+
 
     def test_p3(self) :
         x = self.pack.p3("abcd")
@@ -105,7 +114,6 @@ class Tests1(Gen_TestCase) :
         self.assertRaises(PackException, func, a,b,a)
 
 
-
    #   procedure p5(x out t1,y in t1) is
     def test_p5(self) :
         x = self.pack.p5([])
@@ -129,8 +137,6 @@ class Tests1(Gen_TestCase) :
         x2.d = datetime.datetime(2002,1,3)
 
         res = self.pack.p5([x1,x2])
-       # print [x1,x2]
-       # print res
         self.assertEqual(res[0].a,x2.a,"aua")
         
         self.assertRaises(Exception, lambda v : self.pack.p5([v]),None)
@@ -152,7 +158,6 @@ class Tests1(Gen_TestCase) :
     def test_p6 (self) :
         res = self.pack.p6(u"xäöüß")
         self.assertEqual("xäöüßäöüß", res, 'aua')
-        print (res)
 
     def test_p7_p8(self) :
         self.pack.p7([],[])
@@ -191,10 +196,7 @@ class Tests2(Gen_TestCase) :
         import orautil
         # 123456 are microseconds
         t = datetime.datetime(2012,3,4,23,34,12,123456)
-        #orautil.dbms_output_enable(self.con,100000)
-
         t2 = self.pack.p_timestamping(t)
-        #print(orautil.dbms_output_get_lines(self.con))
         self.assertTrue(t==t2)
 
     def test_timestamping2(self) :
@@ -213,7 +215,79 @@ class Tests2(Gen_TestCase) :
         s = "1234567890"*999
         (a) = self.pack.p_large_string(s)
         self.assertTrue(a == self.swap(s))
-        
+
+    def test_tabi(self) :
+        l = {}
+        for i in range(30) :
+            x1 = test_pypub1_r1()
+            x1.a = decimal.Decimal(repr(12*i))
+            x1.b = i*30+5
+            x1.c = "asgfdhgafdhagfdhgafdha"
+            x1.d = datetime.datetime(2001,int(i/3)+1,int(i/2)+1)
+            l[i*8] = x1
+        res = self.pack.p_tabi(l)
+        self.assertTrue(l==res)
+            
+    def test_tabi2(self) :
+        l = {}
+        res = self.pack.p_tabi(l)
+        self.assertTrue(l==res)
+            
+    def test_tabi3(self) :
+        l = {}
+        l[-123] = test_pypub1_r1()
+        res = self.pack.p_tabi(l)
+        self.assertTrue(l==res)
+
+    def test_tabi4(self) :
+        l = {}
+        l[None] = test_pypub1_r1()
+        func = lambda x : self.pack.p_tabi(x)
+        self.assertRaises(PackException, func,l)
+
+    def test_tabv(self) :
+        l = {}
+        for i in range(30) :
+            x1 = test_pypub1_r1()
+            x1.a = decimal.Decimal(repr(12*i))
+            x1.b = i*30+5
+            x1.c = "asgfdhgafdhagfdhgafdha"
+            x1.d = datetime.datetime(2001,int(i/3)+1,int(i/2)+1)
+            l["a" + repr(i*8234)] = x1
+        res = self.pack.p_tabv(l)
+        self.assertTrue(l==res)
+            
+    def test_tabv2(self) :
+        l = {}
+        res = self.pack.p_tabv(l)
+        self.assertTrue(l==res)
+
+    def test_tabv3(self) :
+        l = {}
+        l["nix"] = test_pypub1_r1()
+        res = self.pack.p_tabv(l)
+        self.assertTrue(l==res)
+
+    def test_tabv4(self) :
+        l = {}
+        l[""] = test_pypub1_r1()
+        func = lambda x : self.pack.p_tabv(x)
+        self.assertRaises(PackException, func,l)
+ 
+    def test_tabv5(self) :
+        l = {}
+        l[None] = test_pypub1_r1()
+        func = lambda x : self.pack.p_tabv(x)
+        self.assertRaises(PackException, func,l)
+
+    def test_o1_1(self) :
+        res = None
+        self.assertTrue(res is None)
+    
+    def test_o2(self) :
+        a = test_object()
+        res = self.pack.p_o1(a)
+        self.assertTrue(res == a)
 
 # testing dbms_output
 # note : dbms_output supports lines with maximum length of 32767 
